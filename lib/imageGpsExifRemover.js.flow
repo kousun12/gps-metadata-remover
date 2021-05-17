@@ -97,7 +97,7 @@ const findGPSinExifJpg
     await killGPS(gpsOffset + masterOffset, littleEndian, read, write)
     return true
   }
-  
+
   return false
 }
 
@@ -126,21 +126,7 @@ export const imageGpsExifRemoverSkip
         = await readNextChunkIntoDataView(pngCurrentTagSize, offsetOfExifData, read)
         console.log('png exif view', exifDataView)
         removedGps = await findGPSinExifJpg(exifDataView, pngCurrentTagSize, offsetOfExifData, read, write)
-      } else if (pngCurrentTag === PNG_ITXT_TAG) {
-        console.log('found itxt in png')
-        const offsetOfPotentialXMPTag = offset + 8
-        if(pngCurrentTagSize >= PNG_XMP_TAG.length) {
-          const XMPTagDataView = await readNextChunkIntoDataView(PNG_XMP_TAG.length, offsetOfPotentialXMPTag, read)
-          const potentialXMPTag = XMPTagDataView.getString(PNG_XMP_TAG.length, 0)
-          if(potentialXMPTag === PNG_XMP_TAG) {
-            console.log('wiping png XMP metadata')
-            const wipeoutString = getWipeoutString(pngCurrentTagSize)
-            await write(wipeoutString, offsetOfPotentialXMPTag, 'ascii')
-            removedGps = true
-          }
-        }
       }
-  
       // 12 === tag length 4 bytes + tag name 4 bytes + 4 end bytes
       if (pngCurrentTag !== END_OF_PNG_TAG) {
         offset = offset + 12 + pngCurrentTagSize
@@ -169,7 +155,7 @@ export const imageGpsExifRemoverSkip
       // 2 byte size + 4 byte 'Exif' + 2 empty bytes
       offset += 8
       const exifDataView = await readNextChunkIntoDataView(sizeOfExifData, offset, read)
-      
+
       removedGps = await findGPSinExifJpg(exifDataView, sizeOfExifData, offset, read, write)
     }
   } else if (fileTypeTag === LITTLE_ENDIAN_TAG || fileTypeTag === BIG_ENDIAN_TAG) {
